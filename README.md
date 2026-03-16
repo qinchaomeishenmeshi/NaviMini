@@ -1,9 +1,184 @@
 # NaviMini
 
-Minimal iOS SwiftUI player for Navidrome (Subsonic REST API).
+NaviMini 是一个面向个人音乐库的 iOS 客户端，使用 SwiftUI 构建，服务端兼容
+Navidrome 和 Subsonic REST API。
 
-MVP:
-- All songs list
-- Order / Shuffle / Repeat-one
+这个项目当前的定位不是完整的流媒体产品，而是一个已经打通核心链路的 iOS MVP：
 
-Base URL (default): `https://your-domain.example.com/`
+- 登录到自己的 Navidrome 服务
+- 拉取歌曲列表
+- 顺序播放、随机播放、单曲循环
+- 后台播放、锁屏控制、Now Playing 信息
+- 基础封面缓存、音频缓存、列表缓存
+- 基础快捷指令 / App Intents
+
+## 当前状态
+
+**项目已可编译、可运行，并包含最小单元测试。**
+
+当前更适合：
+
+- 自建 Navidrome 资料库的个人使用
+- 作为 SwiftUI + AVFoundation + Subsonic API 的参考项目
+- 后续继续扩展专辑、搜索、播放队列、下载管理
+
+当前还不适合：
+
+- 直接作为“功能完整”的音乐播放器发布
+- 依赖复杂媒体库能力的场景
+- 把所有 Subsonic 兼容行为都视为已覆盖
+
+## 已实现能力
+
+### 核心链路
+
+- 服务器地址、用户名、密码登录
+- 使用 `ping` 验证服务可达性
+- 歌曲列表拉取与分页加载
+- 点击歌曲开始播放
+- 顺序、随机、单曲循环三种模式
+- 上一首、下一首、播放 / 暂停
+
+### 播放体验
+
+- `AVQueuePlayer` 播放
+- 后台音频会话
+- 锁屏 / 控制中心媒体控制
+- 播放结束后的模式切换逻辑
+- 切歌时校正系统播放时间显示
+- 队列尾部停止，不再错误重播最后一首
+
+### 缓存与稳定性
+
+- 音频文件本地缓存
+- 封面内存与磁盘缓存
+- 歌曲列表缓存
+- 本地音频失效后回退远程播放
+- 后台下载与缓存健康检查
+
+### 系统集成
+
+- App Intents
+- 快捷指令入口
+- 基础播放控制命令
+
+## 技术栈
+
+- Swift 5
+- SwiftUI
+- AVFoundation
+- MediaPlayer
+- App Intents
+- XcodeGen
+
+## 环境要求
+
+- macOS
+- Xcode 16 或更高版本
+- iOS 17.0 或更高版本
+- 一个可访问的 Navidrome 服务
+
+## 快速开始
+
+### 1. 克隆仓库
+
+```bash
+git clone https://github.com/qinchaomeishenmeshi/NaviMini.git
+cd NaviMini
+```
+
+### 2. 生成工程
+
+这个仓库使用 `project.yml` 管理工程定义。若你修改了工程配置，先重新生成
+`.xcodeproj`：
+
+```bash
+xcodegen generate
+```
+
+如果你本机已存在 Ruby 环境，也可以使用：
+
+```bash
+ruby update_xcode.rb
+```
+
+### 3. 打开工程
+
+用 Xcode 打开：
+
+```bash
+open NaviMini.xcodeproj
+```
+
+### 4. 运行 App
+
+首次启动后，在登录页填写：
+
+- 服务器地址，例如 `https://your-domain.example.com/rest`
+- 用户名
+- 密码
+
+如果你的 Navidrome 部署地址不是 `/rest` 结尾，先确认你填入的是实际可用的
+Subsonic REST 根路径。这个客户端当前不会替你做所有路径纠正。
+
+## 测试与验证
+
+运行单元测试：
+
+```bash
+xcodebuild test \
+  -project NaviMini.xcodeproj \
+  -scheme NaviMini \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.6'
+```
+
+构建验证：
+
+```bash
+xcodebuild build \
+  -project NaviMini.xcodeproj \
+  -scheme NaviMini \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.6'
+```
+
+## 项目结构
+
+```text
+NaviMini/
+├── App/            # 会话状态、快捷指令
+├── Auth/           # 登录、设置、Keychain
+├── Models/         # 领域模型
+├── Playback/       # 播放控制、播放模式、队列逻辑
+├── Storage/        # 音频/封面/列表缓存
+├── Subsonic/       # API 客户端与模型
+├── ViewModels/     # 页面状态管理
+└── Views/          # SwiftUI 界面
+```
+
+测试代码位于：
+
+- `NaviMiniTests/`
+
+## 已知限制
+
+- 当前媒体库能力仍偏薄，主要围绕“歌曲列表 + 播放”展开
+- 还没有专辑页、歌手页、完整搜索、播放队列管理
+- 自动化测试覆盖面有限，目前只有最小回归测试
+- App Intents 已接入，但系统侧的可发现性和完整集成仍可继续完善
+- 某些服务端元数据质量差时，时长、封面、转码行为仍受服务端返回影响
+
+## 开发重点
+
+如果继续往产品方向推进，优先级应该是：
+
+1. 补全专辑、歌手、搜索、收藏等媒体库能力
+2. 增加更完整的播放队列与播放进度控制
+3. 扩大测试覆盖，降低回归风险
+4. 继续收敛登录、网络异常、缓存异常时的错误体验
+5. 完善快捷指令和系统集成
+
+## License
+
+当前仓库未附带正式许可证。
+
+如果你准备公开分发或接受外部贡献，应该先补一个明确的开源许可证。
