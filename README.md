@@ -12,6 +12,12 @@ Navidrome 和 Subsonic REST API。
 - 基础封面缓存、音频缓存、列表缓存
 - 基础快捷指令 / App Intents
 
+## 界面预览
+
+| 登录 | 歌曲列表 | 播放器 |
+| --- | --- | --- |
+| ![登录页](docs/images/login-screen.png) | ![歌曲列表](docs/images/library-screen.png) | ![播放器](docs/images/player-screen.png) |
+
 ## 当前状态
 
 **项目已可编译、可运行，并包含最小单元测试。**
@@ -179,6 +185,6 @@ NaviMini/
 
 ## License
 
-当前仓库未附带正式许可证。
+本仓库使用 [MIT License](LICENSE)。
 
-如果你准备公开分发或接受外部贡献，应该先补一个明确的开源许可证。
+这意味着你可以自由使用、修改和分发代码，但软件按“现状”提供，不附带担保。

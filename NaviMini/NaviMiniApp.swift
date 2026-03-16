@@ -14,7 +14,12 @@ struct NaviMiniApp: App {
   }
   var body: some Scene {
     WindowGroup {
-      ContentView()
+      switch LaunchMode.current {
+      case .normal:
+        ContentView()
+      case .screenshotLogin, .screenshotLibrary, .screenshotPlayer:
+        ScreenshotShowcaseView(mode: LaunchMode.current)
+      }
     }
   }
 }
