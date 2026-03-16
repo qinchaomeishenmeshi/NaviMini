@@ -2,7 +2,7 @@ import Foundation
 import Security
 
 final class KeychainStore {
-  private let service = "com.navimini.NaviMini"
+  private let service = "com.navimini.app"
 
   func save(_ value: String, account: String) throws {
     let data = Data(value.utf8)
