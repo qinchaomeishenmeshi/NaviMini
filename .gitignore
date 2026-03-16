@@ -1,0 +1,10 @@
+.DS_Store
+DerivedData/
+build.log
+simulator.png
+
+*.xcuserstate
+xcuserdata/
+
+NaviMini.xcodeproj/xcuserdata/
+NaviMini.xcodeproj.bak-empty-20260316/
