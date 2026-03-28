@@ -3,15 +3,14 @@ import Foundation
 import MediaPlayer
 
 struct PlaybackNowPlayingCoordinator {
-  func update(
-    song: Song?,
+  private static let sourceFormatInfoKey = "com.cherishxn.navimini.sourceFormat"
+
+  func makeNowPlayingInfo(
+    song: Song,
     isPlaying: Bool,
-    client: SubsonicClient,
     elapsedTime: Double = 0,
     itemDuration: CMTime? = nil
-  ) {
-    guard let song else { return }
-
+  ) -> [String: Any] {
     var info: [String: Any] = [
       MPMediaItemPropertyTitle: song.title,
       MPMediaItemPropertyArtist: song.artist,
@@ -19,6 +18,11 @@ struct PlaybackNowPlayingCoordinator {
       MPNowPlayingInfoPropertyElapsedPlaybackTime: elapsedTime,
       MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? 1.0 : 0.0
     ]
+
+    if let sourceFormatLabel = song.nowPlayingSourceFormatLabel {
+      info[MPMediaItemPropertyComments] = sourceFormatLabel
+      info[Self.sourceFormatInfoKey] = sourceFormatLabel
+    }
 
     let itemDurationSeconds = itemDuration.map(CMTimeGetSeconds)
     if let duration = PlaybackQueueLogic.resolvedPlaybackDuration(
@@ -28,6 +32,23 @@ struct PlaybackNowPlayingCoordinator {
       info[MPMediaItemPropertyPlaybackDuration] = NSNumber(value: duration)
     }
 
+    return info
+  }
+
+  func update(
+    song: Song?,
+    isPlaying: Bool,
+    client: SubsonicClient,
+    elapsedTime: Double = 0,
+    itemDuration: CMTime? = nil
+  ) {
+    guard let song else { return }
+    let info = makeNowPlayingInfo(
+      song: song,
+      isPlaying: isPlaying,
+      elapsedTime: elapsedTime,
+      itemDuration: itemDuration
+    )
     MPNowPlayingInfoCenter.default().nowPlayingInfo = info
 
     if let artId = song.coverArt {

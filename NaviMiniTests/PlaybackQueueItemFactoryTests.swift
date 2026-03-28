@@ -24,6 +24,29 @@ final class PlaybackQueueItemFactoryTests: XCTestCase {
 
     let queueItem = factory.makeItem(for: song, client: client)
 
-    XCTAssertEqual((queueItem.item.asset as? AVURLAsset)?.url, client.streamURL(songId: songId))
+    XCTAssertEqual(
+      (queueItem.item.asset as? AVURLAsset)?.url,
+      client.streamURL(songId: songId, format: .mp3(maxBitRate: 192))
+    )
+  }
+
+  func testMakeItemUsesRawStreamForFlacSource() {
+    let songId = UUID().uuidString
+    let song = Song(
+      id: songId,
+      title: "Lossless",
+      artist: "Artist",
+      album: "Album",
+      duration: 180,
+      coverArt: nil,
+      sourceFormat: "flac"
+    )
+
+    let queueItem = factory.makeItem(for: song, client: client)
+
+    XCTAssertEqual(
+      (queueItem.item.asset as? AVURLAsset)?.url,
+      client.streamURL(songId: songId, format: .raw)
+    )
   }
 }

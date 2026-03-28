@@ -11,7 +11,10 @@ final class PlaybackQueueItemFactory {
     for song: Song,
     client: SubsonicClient
   ) -> PlaybackQueueItem {
-    let url = client.streamURL(songId: song.id, format: "mp3", maxBitRate: 192)
+    let format: SubsonicClient.StreamFormat = song.shouldUseRawStream
+      ? .raw
+      : .mp3(maxBitRate: 192)
+    let url = client.streamURL(songId: song.id, format: format)
     return PlaybackQueueItem(item: AVPlayerItem(url: url))
   }
 }

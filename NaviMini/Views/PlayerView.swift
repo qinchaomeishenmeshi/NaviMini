@@ -32,6 +32,18 @@ struct PlayerView: View {
             .foregroundStyle(.secondary)
             .lineLimit(1)
         }
+
+        if let formatLabel = playback.current?.sourceFormatLabel {
+          Text(formatLabel)
+            .font(.caption2.weight(.medium))
+            .foregroundStyle(.secondary.opacity(0.85))
+            .padding(.horizontal, 6)
+            .padding(.vertical, 1)
+            .background(
+              Capsule()
+                .fill(Color.secondary.opacity(0.08))
+            )
+        }
       }
       .frame(maxWidth: .infinity)
 

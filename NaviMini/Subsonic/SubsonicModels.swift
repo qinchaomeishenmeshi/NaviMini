@@ -55,6 +55,8 @@ struct SongDTO: Decodable {
   let album: String?
   let duration: Int?
   let coverArt: String?
+  let suffix: String?
+  let contentType: String?
 }
 
 extension SongDTO {
@@ -65,7 +67,26 @@ extension SongDTO {
       artist: artist ?? "",
       album: album ?? "",
       duration: duration,
-      coverArt: coverArt
+      coverArt: coverArt,
+      sourceFormat: resolvedSourceFormat
     )
+  }
+
+  private var resolvedSourceFormat: String? {
+    if let suffix, !suffix.isEmpty {
+      return suffix.lowercased()
+    }
+
+    guard let contentType else { return nil }
+
+    let normalizedContentType = contentType.lowercased()
+    if normalizedContentType.contains("flac") {
+      return "flac"
+    }
+    if let slashIndex = normalizedContentType.lastIndex(of: "/") {
+      let subtype = normalizedContentType[normalizedContentType.index(after: slashIndex)...]
+      return subtype.isEmpty ? nil : String(subtype)
+    }
+    return normalizedContentType.isEmpty ? nil : normalizedContentType
   }
 }
