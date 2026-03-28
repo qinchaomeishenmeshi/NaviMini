@@ -25,12 +25,12 @@ struct ResumePlaybackIntent: AppIntent {
 }
 
 enum ShortcutError: LocalizedError {
-  case needsLogin
+  case connectionFailed
 
   var errorDescription: String? {
     switch self {
-    case .needsLogin:
-      return "请先登录并刷新列表"
+    case .connectionFailed:
+      return "资料库暂时不可用，请稍后重试"
     }
   }
 }
@@ -47,7 +47,7 @@ struct ShuffleCurrentListIntent: AppIntent {
       PlaybackController.shared.shuffleCurrentList(client: client)
       return .result()
     } catch {
-      throw ShortcutError.needsLogin
+      throw ShortcutError.connectionFailed
     }
   }
 }

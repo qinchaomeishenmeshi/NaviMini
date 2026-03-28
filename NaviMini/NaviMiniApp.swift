@@ -9,7 +9,7 @@ struct NaviMiniApp: App {
       try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
       try AVAudioSession.sharedInstance().setActive(true)
     } catch {
-      print("Failed to set audio session category: \(error)")
+      MetricsLogger.shared.log("app_audio_session_error error=\(error)")
     }
   }
   var body: some Scene {
@@ -17,7 +17,7 @@ struct NaviMiniApp: App {
       switch LaunchMode.current {
       case .normal:
         ContentView()
-      case .screenshotLogin, .screenshotLibrary, .screenshotPlayer:
+      case .screenshotConnect, .screenshotLibrary, .screenshotPlayer:
         ScreenshotShowcaseView(mode: LaunchMode.current)
       }
     }

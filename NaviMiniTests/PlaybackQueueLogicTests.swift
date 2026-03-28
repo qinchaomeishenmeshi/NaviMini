@@ -40,4 +40,67 @@ final class PlaybackQueueLogicTests: XCTestCase {
       )
     )
   }
+
+  func testNormalizedPlaybackTimeClampsToDuration() {
+    XCTAssertEqual(
+      PlaybackQueueLogic.normalizedPlaybackTime(rawCurrentSeconds: 270, duration: 259),
+      259,
+      accuracy: 0.001
+    )
+    XCTAssertEqual(
+      PlaybackQueueLogic.normalizedPlaybackTime(rawCurrentSeconds: -2, duration: 259),
+      0,
+      accuracy: 0.001
+    )
+  }
+
+  func testNormalizedPlaybackTimeFallsBackToRawWhenDurationMissing() {
+    XCTAssertEqual(
+      PlaybackQueueLogic.normalizedPlaybackTime(rawCurrentSeconds: 88.6, duration: nil),
+      88.6,
+      accuracy: 0.001
+    )
+    XCTAssertEqual(
+      PlaybackQueueLogic.normalizedPlaybackTime(rawCurrentSeconds: .nan, duration: 100),
+      0,
+      accuracy: 0.001
+    )
+  }
+
+  func testProjectedPlaybackTimeAdvancesOnlyWhenPlaying() {
+    XCTAssertEqual(
+      PlaybackQueueLogic.projectedPlaybackTime(
+        baseSeconds: 100,
+        elapsedSinceAnchor: 0.4,
+        isPlaying: true,
+        duration: 120
+      ),
+      100.4,
+      accuracy: 0.001
+    )
+
+    XCTAssertEqual(
+      PlaybackQueueLogic.projectedPlaybackTime(
+        baseSeconds: 100,
+        elapsedSinceAnchor: 2,
+        isPlaying: false,
+        duration: 120
+      ),
+      100,
+      accuracy: 0.001
+    )
+  }
+
+  func testProjectedPlaybackTimeIsClampedByDuration() {
+    XCTAssertEqual(
+      PlaybackQueueLogic.projectedPlaybackTime(
+        baseSeconds: 119.9,
+        elapsedSinceAnchor: 2,
+        isPlaying: true,
+        duration: 120
+      ),
+      120,
+      accuracy: 0.001
+    )
+  }
 }

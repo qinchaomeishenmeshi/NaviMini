@@ -18,4 +18,30 @@ enum PlaybackQueueLogic {
 
     return nil
   }
+
+  static func normalizedPlaybackTime(
+    rawCurrentSeconds: Double,
+    duration: Double?
+  ) -> Double {
+    guard rawCurrentSeconds.isFinite else { return 0 }
+    let safeCurrent = max(rawCurrentSeconds, 0)
+
+    guard let duration, duration.isFinite, duration > 0 else {
+      return safeCurrent
+    }
+
+    return min(safeCurrent, duration)
+  }
+
+  static func projectedPlaybackTime(
+    baseSeconds: Double,
+    elapsedSinceAnchor: Double,
+    isPlaying: Bool,
+    duration: Double?
+  ) -> Double {
+    let safeBase = max(baseSeconds, 0)
+    let safeElapsed = max(elapsedSinceAnchor, 0)
+    let projected = isPlaying ? safeBase + safeElapsed : safeBase
+    return normalizedPlaybackTime(rawCurrentSeconds: projected, duration: duration)
+  }
 }

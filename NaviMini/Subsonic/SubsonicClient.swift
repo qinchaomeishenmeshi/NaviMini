@@ -1,6 +1,30 @@
 import Foundation
 
 struct SubsonicClient {
+  enum StreamFormat: Equatable {
+    case raw
+    case mp3(maxBitRate: Int)
+    case flac
+
+    var queryItems: [URLQueryItem] {
+      switch self {
+      case .raw:
+        return [
+          .init(name: "format", value: "raw")
+        ]
+      case .mp3(let maxBitRate):
+        return [
+          .init(name: "format", value: "mp3"),
+          .init(name: "maxBitRate", value: String(maxBitRate)),
+        ]
+      case .flac:
+        return [
+          .init(name: "format", value: "flac")
+        ]
+      }
+    }
+  }
+
   let baseURL: URL
   let username: String
   let password: String
@@ -60,12 +84,10 @@ struct SubsonicClient {
     return dtos.map { $0.toSong() }
   }
 
-  func streamURL(songId: String, format: String = "mp3", maxBitRate: Int = 192) -> URL {
+  func streamURL(songId: String, format: StreamFormat = .mp3(maxBitRate: 192)) -> URL {
     requestURL("stream.view", extra: [
       .init(name: "id", value: songId),
-      .init(name: "format", value: format),
-      .init(name: "maxBitRate", value: String(maxBitRate)),
-    ])
+    ] + format.queryItems)
   }
 
   func coverArtURL(coverArtId: String) -> URL {
