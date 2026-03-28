@@ -41,48 +41,6 @@ final class PlaybackQueueLogicTests: XCTestCase {
     )
   }
 
-  func testNearEndFallbackDecisionResetsWhenOutsideWindow() {
-    let decision = PlaybackQueueLogic.nearEndFallbackDecision(
-      currentSeconds: 120,
-      duration: 180,
-      lastObservedProgressSeconds: 119,
-      currentStagnantTicks: 3,
-      nearEndWindowSeconds: 1.5,
-      stagnationThreshold: 5
-    )
-
-    XCTAssertEqual(decision.stagnantTicks, 0)
-    XCTAssertFalse(decision.shouldTriggerFallback)
-  }
-
-  func testNearEndFallbackDecisionIncrementsTicksWhenProgressStagnatesNearEnd() {
-    let decision = PlaybackQueueLogic.nearEndFallbackDecision(
-      currentSeconds: 178.8,
-      duration: 180,
-      lastObservedProgressSeconds: 178.8,
-      currentStagnantTicks: 3,
-      nearEndWindowSeconds: 1.5,
-      stagnationThreshold: 5
-    )
-
-    XCTAssertEqual(decision.stagnantTicks, 4)
-    XCTAssertFalse(decision.shouldTriggerFallback)
-  }
-
-  func testNearEndFallbackDecisionTriggersAtThreshold() {
-    let decision = PlaybackQueueLogic.nearEndFallbackDecision(
-      currentSeconds: 179.2,
-      duration: 180,
-      lastObservedProgressSeconds: 179.2,
-      currentStagnantTicks: 4,
-      nearEndWindowSeconds: 1.5,
-      stagnationThreshold: 5
-    )
-
-    XCTAssertEqual(decision.stagnantTicks, 5)
-    XCTAssertTrue(decision.shouldTriggerFallback)
-  }
-
   func testNormalizedPlaybackTimeClampsToDuration() {
     XCTAssertEqual(
       PlaybackQueueLogic.normalizedPlaybackTime(rawCurrentSeconds: 270, duration: 259),

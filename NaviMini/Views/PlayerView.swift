@@ -172,7 +172,7 @@ struct PlayerView: View {
       .padding(.top, 24)
       .task(id: artId) {
         isLoadingCover = true
-        coverImage = await CoverCache.shared.image(for: artId, url: url)
+        coverImage = await CoverArtLoader.image(from: url)
         isLoadingCover = false
       }
     } else {

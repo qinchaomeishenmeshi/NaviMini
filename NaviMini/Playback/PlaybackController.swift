@@ -25,16 +25,6 @@ final class PlaybackController: ObservableObject {
   var lastClient: SubsonicClient?
   var audioSessionObservers: [NSObjectProtocol] = []
   var playStartTime: Date?
-  var playStartSource: String?
-
-  let nearEndFallbackWindowSeconds: Double = 1.5
-  let nearEndFallbackStagnationTicks: Int = 5
-  let nearEndFallbackStagnationTicksForUnreliableDuration: Int = 2
-  let unexpectedRewindThresholdSeconds: Double = 5
-  let unexpectedRewindMinProgressSeconds: Double = 20
-  let overflowDurationGraceSeconds: Double = 6
-  let seekGraceSeconds: Double = 2.5
-  let nearEndNoItemAdvanceWindowSeconds: Double = 1.2
 
   init() {
     configureAudioSession()
@@ -142,7 +132,6 @@ final class PlaybackController: ObservableObject {
     }
     let target = CMTime(seconds: targetSeconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
     item.seek(to: target, toleranceBefore: .zero, toleranceAfter: .zero, completionHandler: nil)
-    progressState.lastManualSeekAt = Date()
     progressAnchorDate = Date()
     currentTime = targetSeconds
     var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
@@ -211,7 +200,7 @@ final class PlaybackController: ObservableObject {
     updateNowPlayingInfo(client: client)
   }
 
-  private func rebuildQueue(client: SubsonicClient, forceRemote: Bool = false) {
+  private func rebuildQueue(client: SubsonicClient) {
     player.removeAllItems()
     observerState.cancellables.removeAll()
 
@@ -226,18 +215,16 @@ final class PlaybackController: ObservableObject {
       "rebuild_queue mode=\(mode.rawValue) current_index=\(currentIndex) current_song=\(song.id) queue_count=\(queue.count) unique_song_count=\(uniqueSongCount)"
     )
 
-    let queueItem = queueItemFactory.makeItem(for: song, client: client, forceRemote: forceRemote)
+    let queueItem = queueItemFactory.makeItem(for: song, client: client)
     let item = queueItem.item
-    let isLocal = queueItem.isLocal
     player.insert(item, after: nil)
 
     playStartTime = Date()
-    playStartSource = isLocal ? "local" : "remote"
 
-    progressState.resetForNewSong(songId: song.id)
+    progressState.resetForNewSong()
     observerState.resetForNewSong()
 
-    MetricsLogger.shared.log("rebuild_queue_source song=\(song.id) source=\(isLocal ? "local" : "remote") force_remote=\(forceRemote)")
+    MetricsLogger.shared.log("rebuild_queue_source song=\(song.id) source=remote")
 
     updateNowPlayingInfo(client: client, elapsedTime: 0)
 
@@ -365,14 +352,12 @@ final class PlaybackController: ObservableObject {
         )
         if status == .readyToPlay, let start = self.playStartTime {
           let durationMs = Int(Date().timeIntervalSince(start) * 1000)
-          let source = self.playStartSource ?? "unknown"
           let itemDuration = CMTimeGetSeconds(item.duration)
           let metadataDuration = Double(self.current?.duration ?? 0)
           MetricsLogger.shared.log(
-            "play_start_ready songId=\(song.id) source=\(source) duration_ms=\(durationMs) item_duration=\(itemDuration) metadata_duration=\(metadataDuration)"
+            "play_start_ready songId=\(song.id) source=remote duration_ms=\(durationMs) item_duration=\(itemDuration) metadata_duration=\(metadataDuration)"
           )
           self.playStartTime = nil
-          self.playStartSource = nil
           self.updateNowPlayingInfo(client: client, elapsedTime: 0, itemDuration: item.duration)
 
           self.observerState.timeControlStatusCancellable = self.player.publisher(for: \.timeControlStatus)
@@ -398,11 +383,6 @@ final class PlaybackController: ObservableObject {
             displayedCurrentSeconds: self.currentTime,
             duration: self.currentDuration
           )
-          if isLocal {
-            AudioCache.shared.invalidate(songId: song.id)
-            self.rebuildQueue(client: client, forceRemote: true)
-            self.startPlayback(client: client)
-          }
           MetricsLogger.shared.log(
             "playback_item_error song=\(song.id) error=\(error.localizedDescription) details=\(String(describing: item.error))"
           )
@@ -445,22 +425,10 @@ struct PlaybackObserverState {
 }
 
 struct PlaybackProgressState {
-  var monitoredSongId: String?
-  var lastObservedProgressSeconds: Double?
-  var lastObservedRawProgressSeconds: Double?
-  var stagnantTicksNearEnd: Int = 0
-  var didTriggerNearEndFallback: Bool = false
-  var lastManualSeekAt: Date?
   var lastObservedSegmentsDownloadedDuration: Double?
   var lastObservedMediaRequestCount: Int?
 
-  mutating func resetForNewSong(songId: String) {
-    monitoredSongId = songId
-    lastObservedProgressSeconds = nil
-    lastObservedRawProgressSeconds = nil
-    stagnantTicksNearEnd = 0
-    didTriggerNearEndFallback = false
-    lastManualSeekAt = nil
+  mutating func resetForNewSong() {
     lastObservedSegmentsDownloadedDuration = nil
     lastObservedMediaRequestCount = nil
   }

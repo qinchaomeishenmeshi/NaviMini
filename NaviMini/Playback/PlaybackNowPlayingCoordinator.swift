@@ -33,7 +33,7 @@ struct PlaybackNowPlayingCoordinator {
     if let artId = song.coverArt {
       let url = client.coverArtURL(coverArtId: artId)
       Task {
-        if let image = await CoverCache.shared.image(for: artId, url: url) {
+        if let image = await CoverArtLoader.image(from: url) {
           let artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
           var currentInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
           currentInfo[MPMediaItemPropertyArtwork] = artwork

@@ -37,6 +37,7 @@ final class PlaybackProgressTracker {
           rawCurrentSeconds: rawCurrentSeconds,
           duration: resolvedDuration
         )
+        let duration = resolvedDuration ?? 0
         self.trackAccessLogRegression(controller: controller, item: item, rawCurrentSeconds: rawCurrentSeconds, duration: resolvedDuration)
         info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentSeconds
         controller.currentTime = currentSeconds
@@ -47,51 +48,6 @@ final class PlaybackProgressTracker {
         }
         info[MPNowPlayingInfoPropertyPlaybackRate] = controller.isPlaying ? 1.0 : 0.0
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
-
-        let inSeekGraceWindow = controller.progressState.lastManualSeekAt.map { Date().timeIntervalSince($0) < controller.seekGraceSeconds } ?? false
-        if !inSeekGraceWindow,
-           controller.mode != .repeatOne,
-           controller.isPlaying,
-           controller.current?.id == controller.progressState.monitoredSongId,
-           !controller.progressState.didTriggerNearEndFallback {
-          if let last = controller.progressState.lastObservedRawProgressSeconds,
-             last > controller.unexpectedRewindMinProgressSeconds,
-             rawCurrentSeconds + controller.unexpectedRewindThresholdSeconds < last {
-            self.triggerAbnormalProgressAdvance(
-              controller: controller,
-              reason: "rewind",
-              currentSeconds: rawCurrentSeconds,
-              duration: resolvedDuration
-            )
-            return
-          }
-
-          if let duration = resolvedDuration,
-             duration.isFinite,
-             duration > 0,
-             rawCurrentSeconds > duration + controller.overflowDurationGraceSeconds {
-            self.triggerAbnormalProgressAdvance(
-              controller: controller,
-              reason: "overflow",
-              currentSeconds: rawCurrentSeconds,
-              duration: duration
-            )
-            return
-          }
-        }
-
-        guard controller.mode != .repeatOne,
-              controller.isPlaying,
-              controller.current?.id == controller.progressState.monitoredSongId,
-              !controller.progressState.didTriggerNearEndFallback,
-              let duration = resolvedDuration,
-              duration.isFinite,
-              duration > 0 else {
-          controller.progressState.lastObservedProgressSeconds = currentSeconds
-          controller.progressState.lastObservedRawProgressSeconds = rawCurrentSeconds
-          controller.progressState.stagnantTicksNearEnd = 0
-          return
-        }
 
         if currentSeconds > 0 {
           let ticks = Int(currentSeconds)
@@ -111,87 +67,14 @@ final class PlaybackProgressTracker {
             let remaining = duration - currentSeconds
             let songId = controller.current?.id ?? "nil"
             MetricsLogger.shared.log(
-              "time_progress song=\(songId) current_time=\(self.fmt5(currentSeconds)) duration=\(self.fmt5(duration)) remaining=\(self.fmt5(remaining)) stagnant_ticks=\(controller.progressState.stagnantTicksNearEnd)"
+              "time_progress song=\(songId) current_time=\(self.fmt5(currentSeconds)) duration=\(self.fmt5(duration)) remaining=\(self.fmt5(remaining))"
             )
           }
         }
-
-        let remaining = duration - currentSeconds
-        guard remaining >= 0, remaining <= controller.nearEndFallbackWindowSeconds else {
-          controller.progressState.lastObservedProgressSeconds = currentSeconds
-          controller.progressState.lastObservedRawProgressSeconds = rawCurrentSeconds
-          controller.progressState.stagnantTicksNearEnd = 0
-          return
-        }
-
-        let waitingReason = controller.player.reasonForWaitingToPlay?.rawValue ?? "nil"
-        if timeControlStatus == .waitingToPlayAtSpecifiedRate,
-           waitingReason == AVPlayer.WaitingReason.noItemToPlay.rawValue,
-           remaining <= controller.nearEndNoItemAdvanceWindowSeconds {
-          controller.progressState.didTriggerNearEndFallback = true
-          let songId = controller.current?.id ?? "nil"
-          MetricsLogger.shared.log(
-            "near_end_no_item_trigger mode=\(controller.mode.rawValue) current_song=\(songId) current_index=\(controller.currentIndex) current_time=\(self.fmt5(currentSeconds)) duration=\(self.fmt5(duration)) remaining=\(self.fmt5(remaining))"
-          )
-          self.logPlaybackSnapshot(
-            controller: controller,
-            reason: "near_end_no_item_trigger",
-            item: item,
-            rawCurrentSeconds: rawCurrentSeconds,
-            displayedCurrentSeconds: currentSeconds,
-            duration: duration
-          )
-          if let client = controller.lastClient {
-            controller.next(client: client)
-          } else {
-            MetricsLogger.shared.log("near_end_no_item_skip reason=no_client")
-          }
-          return
-        }
-
         let songId = controller.current?.id ?? "nil"
         MetricsLogger.shared.log(
-          "near_end_observed song=\(songId) current_time=\(self.fmt5(currentSeconds)) duration=\(self.fmt5(duration)) remaining=\(self.fmt5(remaining)) last_progress=\(self.fmt5(controller.progressState.lastObservedProgressSeconds ?? -1)) stagnant_ticks=\(controller.progressState.stagnantTicksNearEnd)"
+          "playback_progress song=\(songId) current_time=\(self.fmt5(currentSeconds)) duration=\(self.fmt5(duration)) time_control=\(timeControlStatus.rawValue)"
         )
-
-        let itemDurationSeconds = CMTimeGetSeconds(item.duration)
-        let hasReliableItemDuration = itemDurationSeconds.isFinite && itemDurationSeconds > 0
-        let stagnationThreshold = hasReliableItemDuration
-          ? controller.nearEndFallbackStagnationTicks
-          : controller.nearEndFallbackStagnationTicksForUnreliableDuration
-
-        let decision = PlaybackQueueLogic.nearEndFallbackDecision(
-          currentSeconds: currentSeconds,
-          duration: duration,
-          lastObservedProgressSeconds: controller.progressState.lastObservedProgressSeconds,
-          currentStagnantTicks: controller.progressState.stagnantTicksNearEnd,
-          nearEndWindowSeconds: controller.nearEndFallbackWindowSeconds,
-          stagnationThreshold: stagnationThreshold
-        )
-        controller.progressState.stagnantTicksNearEnd = decision.stagnantTicks
-        controller.progressState.lastObservedProgressSeconds = currentSeconds
-        controller.progressState.lastObservedRawProgressSeconds = rawCurrentSeconds
-
-        if decision.shouldTriggerFallback {
-          controller.progressState.didTriggerNearEndFallback = true
-          let songId = controller.current?.id ?? "nil"
-          MetricsLogger.shared.log(
-            "near_end_fallback_trigger mode=\(controller.mode.rawValue) current_song=\(songId) current_index=\(controller.currentIndex) current_time=\(self.fmt5(currentSeconds)) duration=\(self.fmt5(duration)) remaining=\(self.fmt5(remaining)) stagnant_ticks=\(controller.progressState.stagnantTicksNearEnd)"
-          )
-          self.logPlaybackSnapshot(
-            controller: controller,
-            reason: "near_end_fallback_trigger",
-            item: item,
-            rawCurrentSeconds: rawCurrentSeconds,
-            displayedCurrentSeconds: currentSeconds,
-            duration: duration
-          )
-          if let client = controller.lastClient {
-            controller.next(client: client)
-          } else {
-            MetricsLogger.shared.log("near_end_fallback_skip reason=no_client")
-          }
-        }
       }
     }
   }
@@ -205,36 +88,6 @@ final class PlaybackProgressTracker {
     controller.isPlaying = false
     self.syncCurrentTimeSnapshot(controller: controller)
     controller.updatePlaybackRate()
-  }
-
-  func triggerAbnormalProgressAdvance(
-    controller: PlaybackController,
-    reason: String,
-    currentSeconds: Double,
-    duration: Double?
-  ) {
-    controller.progressState.didTriggerNearEndFallback = true
-    let item = controller.player.currentItem
-    let songId = controller.current?.id ?? "nil"
-    let durationValue = duration ?? -1
-    MetricsLogger.shared.log(
-      "progress_anomaly_trigger reason=\(reason) mode=\(controller.mode.rawValue) current_song=\(songId) current_index=\(controller.currentIndex) current_time=\(self.fmt5(currentSeconds)) duration=\(self.fmt5(durationValue))"
-    )
-    if let item {
-      self.logPlaybackSnapshot(
-        controller: controller,
-        reason: "progress_anomaly_trigger_\(reason)",
-        item: item,
-        rawCurrentSeconds: currentSeconds,
-        displayedCurrentSeconds: controller.currentTime,
-        duration: durationValue
-      )
-    }
-    if let client = controller.lastClient {
-      controller.next(client: client)
-    } else {
-      MetricsLogger.shared.log("progress_anomaly_skip reason=no_client")
-    }
   }
 
   func logPlaybackSnapshot(

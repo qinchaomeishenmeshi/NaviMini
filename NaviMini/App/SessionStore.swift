@@ -12,12 +12,6 @@ final class SessionStore: ObservableObject {
     baseURLString = "https://nd.cherishxn.eu.cc/rest"
     username = "qzx"
     password = "tYU921109@"
-
-    Task { @MainActor in
-      try? await Task.sleep(nanoseconds: 30 * 1_000_000_000)
-      CoverCache.shared.healthCheck()
-      AudioCache.shared.healthCheck()
-    }
   }
 
   func makeClient() throws -> SubsonicClient {

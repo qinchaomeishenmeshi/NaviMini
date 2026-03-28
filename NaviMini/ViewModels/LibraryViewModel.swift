@@ -8,17 +8,16 @@ final class LibraryViewModel: ObservableObject {
   @Published var hasMore: Bool = true
   @Published var errorText: String?
 
-  private let cache = SongsCache()
   private var loadedCount: Int = 0
   private var totalCount: Int = 0
   private var hasDiscoveredTotalCount: Bool = false
   private let pageSize: Int = 50
 
   init() {
-    songs = cache.load()
-    loadedCount = songs.count
-    totalCount = songs.count
-    hasMore = loadedCount > 0
+    songs = []
+    loadedCount = 0
+    totalCount = 0
+    hasMore = false
   }
 
   func refresh(client: SubsonicClient) async {
@@ -35,7 +34,6 @@ final class LibraryViewModel: ObservableObject {
       hasDiscoveredTotalCount = true
       loadedCount = initialOffset + list.count
       hasMore = loadedCount < totalCount
-      cache.save(list)
     } catch {
       errorText = error.localizedDescription
     }

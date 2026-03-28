@@ -9,15 +9,6 @@ extension PlaybackController {
     progressTracker.finishQueuePlayback(controller: self)
   }
 
-  func triggerAbnormalProgressAdvance(reason: String, currentSeconds: Double, duration: Double?) {
-    progressTracker.triggerAbnormalProgressAdvance(
-      controller: self,
-      reason: reason,
-      currentSeconds: currentSeconds,
-      duration: duration
-    )
-  }
-
   func fmt5(_ value: Double) -> String {
     progressTracker.fmt5(value)
   }
