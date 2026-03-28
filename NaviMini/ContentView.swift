@@ -6,11 +6,7 @@ struct ContentView: View {
 
   var body: some View {
     NavigationStack {
-      if session.isLoggedIn {
-        LibraryView(session: session, playback: playback)
-      } else {
-        LoginView(session: session)
-      }
+      LibraryView(session: session, playback: playback)
     }
   }
 }

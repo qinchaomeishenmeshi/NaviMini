@@ -6,8 +6,8 @@ struct ScreenshotShowcaseView: View {
   var body: some View {
     NavigationStack {
       switch mode {
-      case .screenshotLogin:
-        ScreenshotLoginView()
+      case .screenshotConnect:
+        ScreenshotConnectView()
       case .screenshotLibrary:
         ScreenshotLibraryView()
       case .screenshotPlayer:
@@ -19,11 +19,11 @@ struct ScreenshotShowcaseView: View {
   }
 }
 
-private struct ScreenshotLoginView: View {
+private struct ScreenshotConnectView: View {
   var body: some View {
     VStack(spacing: 16) {
       VStack(alignment: .leading, spacing: 4) {
-        Text("连接到你的 Navidrome 资料库")
+        Text("已连接到你的 Navidrome 资料库")
           .font(.footnote)
           .foregroundStyle(.secondary)
       }
@@ -32,21 +32,21 @@ private struct ScreenshotLoginView: View {
 
       Form {
         Section("服务器") {
-          Text("https://your-domain.example.com/rest")
+          Text("https://nd.cherishxn.eu.cc/rest")
             .foregroundStyle(.primary)
         }
 
         Section("帐户") {
-          Text("用户名")
+          Text("qzx")
             .foregroundStyle(.secondary)
-          Text("密码")
+          Text("已配置")
             .foregroundStyle(.secondary)
         }
 
         Section {
           HStack {
             Spacer()
-            Text("登录")
+            Text("已连接")
               .fontWeight(.semibold)
               .foregroundStyle(.white)
             Spacer()
@@ -58,7 +58,7 @@ private struct ScreenshotLoginView: View {
       }
       .formStyle(.grouped)
     }
-    .navigationTitle("连接资料库")
+    .navigationTitle("资料库已连接")
   }
 }
 

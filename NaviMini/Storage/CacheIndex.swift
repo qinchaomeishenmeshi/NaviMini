@@ -102,7 +102,7 @@ final class CacheIndex {
         let fileURL = root.appendingPathComponent(entry.relativePath)
         try? FileManager.default.removeItem(at: fileURL)
       }
-      print("[CacheIndex] pruned key=\(key) size=\(entry.size)")
+      MetricsLogger.shared.log("cache_prune key=\(key) size=\(entry.size)")
       index.entries.removeValue(forKey: key)
       total -= entry.size
     }

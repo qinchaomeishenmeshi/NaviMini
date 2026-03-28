@@ -12,7 +12,7 @@ struct LibraryView: View {
   init(session: SessionStore, playback: PlaybackController) {
     self.session = session
     self.playback = playback
-    _vm = StateObject(wrappedValue: LibraryViewModel(cache: session.cache))
+    _vm = StateObject(wrappedValue: LibraryViewModel())
   }
 
   var body: some View {

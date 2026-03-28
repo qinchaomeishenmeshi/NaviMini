@@ -4,26 +4,14 @@ import Foundation
 final class SessionStore: ObservableObject {
   static let shared = SessionStore()
 
-  @Published var baseURLString: String
-  @Published var username: String
-  @Published var password: String
-  @Published var isLoggedIn: Bool
-
-  let cache = SongsCache()
-
-  private let settings = AppSettings()
-  private let keychain = KeychainStore()
+  let baseURLString: String
+  let username: String
+  let password: String
 
   init() {
-    let base = settings.baseURLString
-    let user = settings.username
-    let pass = keychain.load(account: "password") ?? ""
-    let loggedIn = !user.isEmpty && !pass.isEmpty
-
-    self.baseURLString = base
-    self.username = user
-    self.password = pass
-    self.isLoggedIn = loggedIn
+    baseURLString = "https://nd.cherishxn.eu.cc/rest"
+    username = "qzx"
+    password = "tYU921109@"
 
     Task { @MainActor in
       try? await Task.sleep(nanoseconds: 30 * 1_000_000_000)
@@ -37,17 +25,5 @@ final class SessionStore: ObservableObject {
       throw NSError(domain: "Config", code: 1, userInfo: [NSLocalizedDescriptionKey: "Base URL 不合法"])
     }
     return SubsonicClient(baseURL: url, username: username, password: password)
-  }
-
-  func persist() {
-    settings.baseURLString = baseURLString
-    settings.username = username
-    try? keychain.save(password, account: "password")
-  }
-
-  func logout() {
-    isLoggedIn = false
-    password = ""
-    keychain.delete(account: "password")
   }
 }

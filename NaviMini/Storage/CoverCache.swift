@@ -87,9 +87,12 @@ final class CoverCache {
   }
 
   private func loadFromDisk(_ key: String) async -> UIImage? {
-    await withCheckedContinuation { cont in
+    let url = fileURL(for: key)
+    let cacheKey = cacheKey(for: key)
+    let relativePath = relativePath(for: key)
+    return await withCheckedContinuation { (cont: CheckedContinuation<UIImage?, Never>) in
       ioQueue.async {
-        guard let url = self.fileURL(for: key),
+        guard let url,
               let data = try? Data(contentsOf: url),
               let image = UIImage(data: data) else {
           cont.resume(returning: nil)
@@ -97,9 +100,9 @@ final class CoverCache {
         }
 
         CacheIndex.shared.touch(
-          key: self.cacheKey(for: key),
+          key: cacheKey,
           type: "cover",
-          relativePath: self.relativePath(for: key),
+          relativePath: relativePath,
           size: data.count
         )
         cont.resume(returning: image)
@@ -108,18 +111,22 @@ final class CoverCache {
   }
 
   private func saveToDisk(_ key: String, data: Data) async {
-    await withCheckedContinuation { cont in
+    let url = fileURL(for: key)
+    let cacheKey = cacheKey(for: key)
+    let relativePath = relativePath(for: key)
+    let size = data.count
+    await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
       ioQueue.async {
-        guard let url = self.fileURL(for: key) else {
+        guard let url else {
           cont.resume()
           return
         }
         try? data.write(to: url, options: [.atomic])
         CacheIndex.shared.touch(
-          key: self.cacheKey(for: key),
+          key: cacheKey,
           type: "cover",
-          relativePath: self.relativePath(for: key),
-          size: data.count
+          relativePath: relativePath,
+          size: size
         )
         cont.resume()
       }
