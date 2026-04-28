@@ -12,6 +12,9 @@ final class PlaybackController: ObservableObject {
   @Published var isPlaying: Bool = false
   @Published var currentTime: Double = 0
   @Published var currentDuration: Double = 0
+  @Published var bufferedTime: Double = 0
+  @Published var isBuffering: Bool = false
+  @Published var currentPlaybackSource: PlaybackSource = .remote
   @Published var progressAnchorDate: Date = Date()
 
   let player = AVQueuePlayer()
@@ -25,6 +28,10 @@ final class PlaybackController: ObservableObject {
   var lastClient: SubsonicClient?
   var audioSessionObservers: [NSObjectProtocol] = []
   var playStartTime: Date?
+
+  var isPlaybackAdvancing: Bool {
+    isPlaying && player.timeControlStatus == .playing
+  }
 
   init() {
     configureAudioSession()
@@ -208,6 +215,9 @@ final class PlaybackController: ObservableObject {
     current = song
     currentTime = 0
     currentDuration = 0
+    bufferedTime = 0
+    isBuffering = false
+    currentPlaybackSource = .remote
     progressAnchorDate = Date()
 
     let uniqueSongCount = Set(queue.map(\.id)).count
@@ -217,6 +227,7 @@ final class PlaybackController: ObservableObject {
 
     let queueItem = queueItemFactory.makeItem(for: song, client: client)
     let item = queueItem.item
+    currentPlaybackSource = queueItem.source
     player.insert(item, after: nil)
 
     playStartTime = Date()
@@ -224,7 +235,9 @@ final class PlaybackController: ObservableObject {
     progressState.resetForNewSong()
     observerState.resetForNewSong()
 
-    MetricsLogger.shared.log("rebuild_queue_source song=\(song.id) source=remote")
+    MetricsLogger.shared.log(
+      "rebuild_queue_source song=\(song.id) source=\(queueItem.source == .localCache ? "local_cache" : "remote")"
+    )
 
     updateNowPlayingInfo(client: client, elapsedTime: 0)
 
@@ -355,21 +368,11 @@ final class PlaybackController: ObservableObject {
           let itemDuration = CMTimeGetSeconds(item.duration)
           let metadataDuration = Double(self.current?.duration ?? 0)
           MetricsLogger.shared.log(
-            "play_start_ready songId=\(song.id) source=remote duration_ms=\(durationMs) item_duration=\(itemDuration) metadata_duration=\(metadataDuration)"
+            "play_start_ready songId=\(song.id) source=\(self.currentPlaybackSource == .localCache ? "local_cache" : "remote") duration_ms=\(durationMs) item_duration=\(itemDuration) metadata_duration=\(metadataDuration)"
           )
           self.playStartTime = nil
           self.updateNowPlayingInfo(client: client, elapsedTime: 0, itemDuration: item.duration)
-
-          self.observerState.timeControlStatusCancellable = self.player.publisher(for: \.timeControlStatus)
-            .sink { [weak self] status in
-              guard let self else { return }
-              let waitingReason = self.player.reasonForWaitingToPlay?.rawValue ?? "nil"
-              let songId = self.current?.id ?? "nil"
-              MetricsLogger.shared.log(
-                "time_control_kvo status=\(status.rawValue) reason=\(waitingReason) current_song=\(songId) current_index=\(self.currentIndex)"
-              )
-            }
-
+          self.updateBufferState(for: item)
         }
         if status == .failed, let error = item.error {
           MetricsLogger.shared.log(
@@ -390,7 +393,46 @@ final class PlaybackController: ObservableObject {
       }
       .store(in: &observerState.cancellables)
 
+    player.publisher(for: \.timeControlStatus)
+      .sink { [weak self] status in
+        guard let self else { return }
+        let waitingReason = self.player.reasonForWaitingToPlay?.rawValue ?? "nil"
+        let songId = self.current?.id ?? "nil"
+        MetricsLogger.shared.log(
+          "time_control_kvo status=\(status.rawValue) reason=\(waitingReason) current_song=\(songId) current_index=\(self.currentIndex)"
+        )
+        self.progressAnchorDate = Date()
+        self.isBuffering = self.current != nil && status == .waitingToPlayAtSpecifiedRate
+      }
+      .store(in: &observerState.cancellables)
+
+    item.publisher(for: \.loadedTimeRanges)
+      .sink { [weak self] _ in
+        guard let self else { return }
+        self.updateBufferState(for: item)
+      }
+      .store(in: &observerState.cancellables)
+
     attachTimeObserver(item: item)
+  }
+
+  private func updateBufferState(for item: AVPlayerItem) {
+    let resolvedDuration = PlaybackQueueLogic.resolvedPlaybackDuration(
+      metadataDuration: current?.duration,
+      itemDurationSeconds: CMTimeGetSeconds(item.duration)
+    )
+
+    let loadedRanges = item.loadedTimeRanges.compactMap { $0.timeRangeValue }
+    let bufferedSeconds = loadedRanges
+      .map { CMTimeGetSeconds($0.start) + CMTimeGetSeconds($0.duration) }
+      .filter { $0.isFinite }
+      .max() ?? 0
+
+    bufferedTime = PlaybackQueueLogic.normalizedBufferedTime(
+      bufferedSeconds: bufferedSeconds,
+      duration: resolvedDuration
+    )
+    isBuffering = current != nil && player.timeControlStatus == .waitingToPlayAtSpecifiedRate
   }
 }
 

@@ -103,4 +103,47 @@ final class PlaybackQueueLogicTests: XCTestCase {
       accuracy: 0.001
     )
   }
+
+  func testProjectedPlaybackTimeDoesNotAdvanceWhenPlaybackIsWaiting() {
+    XCTAssertEqual(
+      PlaybackQueueLogic.projectedPlaybackTime(
+        baseSeconds: 100,
+        elapsedSinceAnchor: 2,
+        isPlaying: true,
+        isActuallyAdvancing: false,
+        duration: 120
+      ),
+      100,
+      accuracy: 0.001
+    )
+  }
+
+  func testNormalizedBufferedTimeClampsToDuration() {
+    XCTAssertEqual(
+      PlaybackQueueLogic.normalizedBufferedTime(bufferedSeconds: 270, duration: 259),
+      259,
+      accuracy: 0.001
+    )
+  }
+
+  func testNormalizedBufferedTimeRejectsInvalidValues() {
+    XCTAssertEqual(
+      PlaybackQueueLogic.normalizedBufferedTime(bufferedSeconds: -2, duration: 259),
+      0,
+      accuracy: 0.001
+    )
+    XCTAssertEqual(
+      PlaybackQueueLogic.normalizedBufferedTime(bufferedSeconds: .nan, duration: 259),
+      0,
+      accuracy: 0.001
+    )
+  }
+
+  func testNormalizedBufferedTimeFallsBackWhenDurationMissing() {
+    XCTAssertEqual(
+      PlaybackQueueLogic.normalizedBufferedTime(bufferedSeconds: 88.6, duration: nil),
+      88.6,
+      accuracy: 0.001
+    )
+  }
 }

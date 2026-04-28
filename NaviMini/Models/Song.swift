@@ -31,6 +31,11 @@ struct Song: Identifiable, Codable, Equatable {
     sourceFormat == "flac"
   }
 
+  var cacheFileExtensionHint: String? {
+    guard shouldUseRawStream else { return nil }
+    return sourceFormat
+  }
+
   var sourceFormatLabel: String? {
     guard sourceFormat == "flac" else { return nil }
     return "FLAC"

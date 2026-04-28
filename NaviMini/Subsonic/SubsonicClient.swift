@@ -23,6 +23,17 @@ struct SubsonicClient {
         ]
       }
     }
+
+    var cacheKey: String {
+      switch self {
+      case .raw:
+        return "raw"
+      case .mp3(let maxBitRate):
+        return "mp3_\(maxBitRate)"
+      case .flac:
+        return "flac"
+      }
+    }
   }
 
   let baseURL: URL

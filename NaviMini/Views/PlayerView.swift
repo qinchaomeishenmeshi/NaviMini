@@ -33,16 +33,16 @@ struct PlayerView: View {
             .lineLimit(1)
         }
 
-        if let formatLabel = playback.current?.sourceFormatLabel {
-          Text(formatLabel)
-            .font(.caption2.weight(.medium))
-            .foregroundStyle(.secondary.opacity(0.85))
-            .padding(.horizontal, 6)
-            .padding(.vertical, 1)
-            .background(
-              Capsule()
-                .fill(Color.secondary.opacity(0.08))
-            )
+        if playback.current?.sourceFormatLabel != nil || playback.currentPlaybackSource == .localCache {
+          HStack(spacing: 6) {
+            if let formatLabel = playback.current?.sourceFormatLabel {
+              infoBadge(text: formatLabel, fill: Color.secondary.opacity(0.08), foreground: Color.secondary.opacity(0.85))
+            }
+
+            if playback.currentPlaybackSource == .localCache {
+              infoBadge(text: "本地", fill: Color.accentColor.opacity(0.12), foreground: Color.accentColor.opacity(0.9))
+            }
+          }
         }
       }
       .frame(maxWidth: .infinity)
@@ -53,6 +53,7 @@ struct PlayerView: View {
           ZStack(alignment: .center) {
             MusicProgressBar(
               duration: playback.currentDuration,
+              buffered: playback.bufferedTime,
               progress: visualProgress,
               isDragging: isDraggingProgress,
               onDragChanged: { value in
@@ -212,13 +213,27 @@ struct PlayerView: View {
       baseSeconds: playback.currentTime,
       elapsedSinceAnchor: now.timeIntervalSince(playback.progressAnchorDate),
       isPlaying: playback.isPlaying,
+      isActuallyAdvancing: playback.isPlaybackAdvancing,
       duration: playback.currentDuration > 0 ? playback.currentDuration : nil
     )
+  }
+
+  private func infoBadge(text: String, fill: Color, foreground: Color) -> some View {
+    Text(text)
+      .font(.caption2.weight(.medium))
+      .foregroundStyle(foreground)
+      .padding(.horizontal, 6)
+      .padding(.vertical, 1)
+      .background(
+        Capsule()
+          .fill(fill)
+      )
   }
 }
 
 private struct MusicProgressBar: View {
   let duration: Double
+  let buffered: Double
   let progress: Double
   let isDragging: Bool
   let onDragChanged: (Double) -> Void
@@ -234,10 +249,17 @@ private struct MusicProgressBar: View {
     return clampedProgress / duration
   }
 
+  private var bufferedRatio: Double {
+    guard duration > 0, duration.isFinite else { return 0 }
+    let clampedBuffered = min(max(buffered, 0), duration)
+    return clampedBuffered / duration
+  }
+
   var body: some View {
     GeometryReader { proxy in
       let width = max(proxy.size.width, 1)
       let knobX = max(min(width * ratio, width), 0)
+      let bufferedX = max(min(width * bufferedRatio, width), 0)
 
       ZStack(alignment: .leading) {
         Capsule()
@@ -252,6 +274,10 @@ private struct MusicProgressBar: View {
             )
           )
           .frame(height: 6)
+
+        Capsule()
+          .fill(Color.primary.opacity(0.18))
+          .frame(width: max(bufferedX, 0), height: 6)
 
         Capsule()
           .fill(
