@@ -236,7 +236,15 @@ struct PlayerView: View {
       isLoadingCover = true
       coverImage = nil
       let url = client.coverArtURL(coverArtId: artId)
-      coverImage = await CoverArtLoader.image(from: url)
+      let image = await CoverArtLoader.image(from: url)
+      guard CoverArtPresentation.shouldApplyLoadedImage(
+        isTaskCancelled: Task.isCancelled,
+        requestedCoverArtID: artId,
+        currentCoverArtID: playback.current?.coverArt
+      ) else {
+        return
+      }
+      coverImage = image
       isLoadingCover = false
     }
   }

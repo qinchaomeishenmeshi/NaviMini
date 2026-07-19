@@ -358,6 +358,7 @@ final class PlaybackController: ObservableObject {
 
     // Monitor for failure status to help debug why nothing plays
     item.publisher(for: \.status)
+      .receive(on: DispatchQueue.main)
       .sink { [weak self] status in
         guard let self else { return }
         MetricsLogger.shared.log(
@@ -394,6 +395,7 @@ final class PlaybackController: ObservableObject {
       .store(in: &observerState.cancellables)
 
     player.publisher(for: \.timeControlStatus)
+      .receive(on: DispatchQueue.main)
       .sink { [weak self] status in
         guard let self else { return }
         let waitingReason = self.player.reasonForWaitingToPlay?.rawValue ?? "nil"
@@ -407,6 +409,7 @@ final class PlaybackController: ObservableObject {
       .store(in: &observerState.cancellables)
 
     item.publisher(for: \.loadedTimeRanges)
+      .receive(on: DispatchQueue.main)
       .sink { [weak self] _ in
         guard let self else { return }
         self.updateBufferState(for: item)

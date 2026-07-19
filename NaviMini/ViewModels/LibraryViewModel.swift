@@ -11,6 +11,7 @@ final class LibraryViewModel: ObservableObject {
   private var loadedCount: Int = 0
   private var totalCount: Int = 0
   private var hasDiscoveredTotalCount: Bool = false
+  private var listEpoch: Int = 0
   private let pageSize: Int = 50
 
   init() {
@@ -20,34 +21,43 @@ final class LibraryViewModel: ObservableObject {
     hasMore = false
   }
 
-  func refresh(client: SubsonicClient) async {
+  func refresh(client: some SongLibraryFetching) async {
+    guard !isRefreshing else { return }
     isRefreshing = true
     errorText = nil
+    listEpoch += 1
+    let epoch = listEpoch
     defer { isRefreshing = false }
 
     do {
       let totalSongCount = try await discoverTotalSongCount(client: client)
+      guard epoch == listEpoch else { return }
       let initialOffset = Self.initialRefreshOffset(totalSongCount: totalSongCount, pageSize: pageSize)
       let list = try await client.searchAllSongs(songCount: pageSize, songOffset: initialOffset)
+      guard epoch == listEpoch else { return }
       songs = list
       totalCount = totalSongCount
       hasDiscoveredTotalCount = true
       loadedCount = initialOffset + list.count
       hasMore = loadedCount < totalCount
     } catch {
+      guard epoch == listEpoch else { return }
       errorText = Self.userFacingMessage(for: error)
     }
   }
 
-  func loadMore(client: SubsonicClient) async {
-    guard !isLoadingMore && hasMore else { return }
+  func loadMore(client: some SongLibraryFetching) async {
+    guard !isLoadingMore && !isRefreshing && hasMore else { return }
     isLoadingMore = true
+    let epoch = listEpoch
+    defer { isLoadingMore = false }
 
     do {
       let newSongs = try await client.searchAllSongs(
         songCount: pageSize,
         songOffset: loadedCount
       )
+      guard epoch == listEpoch else { return }
       songs.append(contentsOf: newSongs)
       loadedCount += newSongs.count
       if hasDiscoveredTotalCount {
@@ -60,10 +70,9 @@ final class LibraryViewModel: ObservableObject {
         }
       }
     } catch {
+      guard epoch == listEpoch else { return }
       errorText = Self.userFacingMessage(for: error)
     }
-
-    isLoadingMore = false
   }
 
   nonisolated static func userFacingMessage(for error: Error) -> String {
@@ -93,7 +102,7 @@ final class LibraryViewModel: ObservableObject {
     return "无法加载歌曲，请稍后重试。"
   }
 
-  private func discoverTotalSongCount(client: SubsonicClient) async throws -> Int {
+  private func discoverTotalSongCount(client: some SongLibraryFetching) async throws -> Int {
     if try await client.searchAllSongs(songCount: 1, songOffset: 0).isEmpty {
       return 0
     }
