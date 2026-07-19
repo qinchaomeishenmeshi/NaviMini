@@ -303,3 +303,7 @@ flowchart LR
 3. 做播放队列管理和更细的进度控制
 4. 视需要补充封面或列表缓存，但保持音频缓存边界清晰
 5. 扩大测试范围，补 UI 和网络层回归
+
+## 9. Design Context
+
+产品定位与设计原则见根目录 [`PRODUCT.md`](PRODUCT.md)。视觉系统（颜色、字体、组件、禁忌）见 [`DESIGN.md`](DESIGN.md)。后续 UI 改动以这两份文件为准；`AGENTS.md` 只保留架构与技术方案。

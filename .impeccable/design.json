@@ -1,0 +1,389 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-19T01:12:00.000Z",
+  "title": "Design System: NaviMini",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "System Signal Blue",
+        "canonical": "#007AFF",
+        "tonalRamp": [
+          "#003166",
+          "#004499",
+          "#0055CC",
+          "#007AFF",
+          "#3395FF",
+          "#66B0FF",
+          "#99CBFF",
+          "#CCE5FF"
+        ]
+      },
+      "accent-soft": {
+        "role": "primary",
+        "displayName": "Accent Soft Wash",
+        "canonical": "#007AFF1F",
+        "tonalRamp": [
+          "#007AFF33",
+          "#007AFF29",
+          "#007AFF1F",
+          "#007AFF14",
+          "#007AFF0F",
+          "#007AFF0A",
+          "#007AFF05",
+          "#007AFF03"
+        ]
+      },
+      "accent-muted": {
+        "role": "primary",
+        "displayName": "Accent Muted",
+        "canonical": "#007AFFE6",
+        "tonalRamp": [
+          "#0055CC",
+          "#0066E0",
+          "#007AFF",
+          "#1A87FF",
+          "#3395FF",
+          "#4DA3FF",
+          "#66B0FF",
+          "#80BEFF"
+        ]
+      },
+      "label": {
+        "role": "neutral",
+        "displayName": "Quiet Label",
+        "canonical": "#000000",
+        "tonalRamp": [
+          "#000000",
+          "#1C1C1E",
+          "#2C2C2E",
+          "#3A3A3C",
+          "#48484A",
+          "#636366",
+          "#8E8E93",
+          "#C7C7CC"
+        ]
+      },
+      "label-secondary": {
+        "role": "neutral",
+        "displayName": "Quiet Secondary",
+        "canonical": "#3C3C4399",
+        "tonalRamp": [
+          "#3C3C43",
+          "#3C3C43CC",
+          "#3C3C4399",
+          "#3C3C4377",
+          "#3C3C4355",
+          "#3C3C4333",
+          "#3C3C4322",
+          "#3C3C4311"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#C7C7CC",
+          "#D1D1D6",
+          "#E5E5EA",
+          "#EFEFF4",
+          "#F2F2F7",
+          "#F9F9FB",
+          "#FCFCFD",
+          "#FFFFFF"
+        ]
+      },
+      "surface-secondary": {
+        "role": "neutral",
+        "displayName": "Surface Secondary",
+        "canonical": "#F2F2F7",
+        "tonalRamp": [
+          "#AEAEB2",
+          "#C7C7CC",
+          "#D1D1D6",
+          "#E5E5EA",
+          "#EFEFF4",
+          "#F2F2F7",
+          "#F9F9FB",
+          "#FFFFFF"
+        ]
+      },
+      "placeholder": {
+        "role": "neutral",
+        "displayName": "Placeholder Wash",
+        "canonical": "#8E8E9333",
+        "tonalRamp": [
+          "#8E8E93",
+          "#8E8E93CC",
+          "#8E8E9399",
+          "#8E8E9377",
+          "#8E8E9333",
+          "#8E8E9322",
+          "#8E8E9314",
+          "#8E8E930A"
+        ]
+      },
+      "error": {
+        "role": "tertiary",
+        "displayName": "Alert Red",
+        "canonical": "#FF3B30",
+        "tonalRamp": [
+          "#661814",
+          "#991F1A",
+          "#CC2922",
+          "#FF3B30",
+          "#FF6259",
+          "#FF8982",
+          "#FFB0AB",
+          "#FFD7D5"
+        ]
+      },
+      "on-accent": {
+        "role": "neutral",
+        "displayName": "On Accent",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#FFFFFF",
+          "#FFFFFF",
+          "#FFFFFF",
+          "#FFFFFF",
+          "#FFFFFF",
+          "#FFFFFF",
+          "#FFFFFF",
+          "#FFFFFF"
+        ]
+      },
+      "progress-track": {
+        "role": "neutral",
+        "displayName": "Progress Track",
+        "canonical": "#0000001F",
+        "tonalRamp": [
+          "#00000033",
+          "#00000029",
+          "#0000001F",
+          "#00000014",
+          "#0000000F",
+          "#0000000A",
+          "#00000005",
+          "#00000003"
+        ]
+      },
+      "progress-buffered": {
+        "role": "neutral",
+        "displayName": "Progress Buffered",
+        "canonical": "#0000002E",
+        "tonalRamp": [
+          "#00000047",
+          "#0000003D",
+          "#0000002E",
+          "#00000024",
+          "#0000001A",
+          "#00000014",
+          "#0000000A",
+          "#00000005"
+        ]
+      },
+      "knob-shadow": {
+        "role": "neutral",
+        "displayName": "Knob Shadow",
+        "canonical": "#0000001F",
+        "tonalRamp": [
+          "#00000038",
+          "#0000002E",
+          "#0000001F",
+          "#00000014",
+          "#0000000F",
+          "#0000000A",
+          "#00000005",
+          "#00000003"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title2": {
+        "displayName": "Title 2",
+        "purpose": "Player track title."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Library song titles."
+      },
+      "body-emphasis": {
+        "displayName": "Body Emphasis",
+        "purpose": "Currently playing song title in list."
+      },
+      "subheadline": {
+        "displayName": "Subheadline",
+        "purpose": "Artist · album and toolbar labels."
+      },
+      "footnote": {
+        "displayName": "Footnote",
+        "purpose": "Errors and connection notes."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Secondary metadata."
+      },
+      "caption2": {
+        "displayName": "Caption 2",
+        "purpose": "Format and local badges."
+      },
+      "time-mono": {
+        "displayName": "Time Mono",
+        "purpose": "Progress elapsed / remaining."
+      }
+    },
+    "shadows": [
+      {
+        "name": "knob-rest",
+        "value": "0 2px 4px rgba(0,0,0,0.12)",
+        "purpose": "Default progress knob lift."
+      },
+      {
+        "name": "knob-drag",
+        "value": "0 2px 8px rgba(0,0,0,0.22)",
+        "purpose": "Progress knob while dragging."
+      }
+    ],
+    "motion": [
+      {
+        "name": "scroll-current",
+        "value": "ease-in-out 350ms",
+        "purpose": "Scroll library list to current song."
+      },
+      {
+        "name": "knob-spring",
+        "value": "spring(response: 0.22, dampingFraction: 0.82)",
+        "purpose": "Progress knob size change while dragging."
+      }
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Play Button",
+      "kind": "button",
+      "refersTo": "button-play",
+      "description": "Circular borderedProminent play/pause control.",
+      "html": "<button class=\"ds-btn-play\" aria-label=\"Pause\"><svg width=\"28\" height=\"28\" viewBox=\"0 0 28 28\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"6\" y=\"5\" width=\"5\" height=\"18\" rx=\"1\" fill=\"currentColor\"/><rect x=\"17\" y=\"5\" width=\"5\" height=\"18\" rx=\"1\" fill=\"currentColor\"/></svg></button>",
+      "css": ".ds-btn-play{display:inline-flex;align-items:center;justify-content:center;width:76px;height:76px;padding:16px;border:none;border-radius:9999px;background:#007AFF;color:#fff;cursor:pointer;transition:transform .15s ease-out,filter .15s ease-out}.ds-btn-play:hover{filter:brightness(1.06)}.ds-btn-play:active{transform:scale(.96)}.ds-btn-play:focus-visible{outline:3px solid #007AFF66;outline-offset:3px}"
+    },
+    {
+      "name": "Transport Button",
+      "kind": "button",
+      "refersTo": "button-transport",
+      "description": "Previous/next icon-only transport controls.",
+      "html": "<button class=\"ds-btn-transport\" aria-label=\"Next\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 22 22\" fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M4 4l10 7-10 7V4zm11 0h3v14h-3V4z\"/></svg></button>",
+      "css": ".ds-btn-transport{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:8px;border:none;background:transparent;color:#000;cursor:pointer;border-radius:8px;transition:opacity .15s ease-out}.ds-btn-transport:hover{opacity:.7}.ds-btn-transport:active{opacity:.5}.ds-btn-transport:focus-visible{outline:2px solid #007AFF;outline-offset:2px}"
+    },
+    {
+      "name": "Toolbar Playing Link",
+      "kind": "nav",
+      "refersTo": "button-toolbar",
+      "description": "Compact Now Playing entry in the library toolbar.",
+      "html": "<a class=\"ds-toolbar-playing\" href=\"#\">▶ 正在播放</a>",
+      "css": ".ds-toolbar-playing{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:9999px;background:#007AFF1F;color:#007AFF;font:600 15px/1.33 -apple-system,BlinkMacSystemFont,SF Pro,system-ui,sans-serif;text-decoration:none;transition:background .15s ease-out}.ds-toolbar-playing:hover{background:#007AFF33}.ds-toolbar-playing:focus-visible{outline:2px solid #007AFF;outline-offset:2px}"
+    },
+    {
+      "name": "Song Row Current",
+      "kind": "custom",
+      "refersTo": "list-row-current",
+      "description": "Library row with current-track accent wash.",
+      "html": "<div class=\"ds-song-row ds-song-row-current\"><div class=\"ds-song-row-text\"><div class=\"ds-song-title\">Signal Over Water</div><div class=\"ds-song-sub\">QZX · Evening Cache</div></div></div>",
+      "css": ".ds-song-row{display:flex;align-items:center;gap:12px;padding:9px 0;font-family:-apple-system,BlinkMacSystemFont,SF Pro,system-ui,sans-serif}.ds-song-row-current{padding-left:8px;padding-right:8px;background:#007AFF1F;border-radius:8px}.ds-song-title{font-size:17px;font-weight:600;line-height:1.29;color:#000}.ds-song-sub{margin-top:3px;font-size:15px;line-height:1.33;color:#3C3C4399}"
+    },
+    {
+      "name": "Local Badge",
+      "kind": "chip",
+      "refersTo": "badge-local",
+      "description": "Capsule chip for local audio cache hit.",
+      "html": "<span class=\"ds-badge-local\">本地</span>",
+      "css": ".ds-badge-local{display:inline-flex;align-items:center;padding:1px 6px;border-radius:9999px;background:#007AFF1F;color:#007AFFE6;font:500 11px/1.27 -apple-system,BlinkMacSystemFont,SF Pro,system-ui,sans-serif}"
+    },
+    {
+      "name": "Format Badge",
+      "kind": "chip",
+      "refersTo": "badge-format",
+      "description": "Capsule chip for source format label.",
+      "html": "<span class=\"ds-badge-format\">FLAC</span>",
+      "css": ".ds-badge-format{display:inline-flex;align-items:center;padding:1px 6px;border-radius:9999px;background:#8E8E9333;color:#3C3C4399;font:500 11px/1.27 -apple-system,BlinkMacSystemFont,SF Pro,system-ui,sans-serif}"
+    },
+    {
+      "name": "Cover Art",
+      "kind": "card",
+      "refersTo": "cover-art",
+      "description": "260pt square cover with 16pt radius placeholder.",
+      "html": "<div class=\"ds-cover\" aria-label=\"Album art\"><svg width=\"36\" height=\"36\" viewBox=\"0 0 36 36\" fill=\"#8E8E93\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M14 8v14.2a4 4 0 1 0 2.5 3.7V13l10-2v9.2a4 4 0 1 0 2.5 3.7V8.5L14 8z\"/></svg></div>",
+      "css": ".ds-cover{display:flex;align-items:center;justify-content:center;width:260px;height:260px;border-radius:16px;background:#8E8E9333}"
+    },
+    {
+      "name": "Music Progress Bar",
+      "kind": "custom",
+      "refersTo": "progress-bar",
+      "description": "Capsule progress with buffered fill and draggable knob.",
+      "html": "<div class=\"ds-progress\" role=\"slider\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"35\"><div class=\"ds-progress-track\"><div class=\"ds-progress-buffered\"></div><div class=\"ds-progress-fill\"></div><div class=\"ds-progress-knob\"></div></div></div>",
+      "css": ".ds-progress{height:36px;display:flex;align-items:center}.ds-progress-track{position:relative;width:100%;height:6px;border-radius:9999px;background:linear-gradient(90deg,#0000001F,#0000000F)}.ds-progress-buffered{position:absolute;inset:0 auto 0 0;width:55%;border-radius:9999px;background:#0000002E}.ds-progress-fill{position:absolute;inset:0 auto 0 0;width:35%;border-radius:9999px;background:linear-gradient(90deg,#007AFFF2,#007AFFA6)}.ds-progress-knob{position:absolute;top:50%;left:35%;width:12px;height:12px;margin-top:-6px;margin-left:-6px;border-radius:50%;background:#fff;border:2px solid #007AFFCC;box-shadow:0 2px 4px rgba(0,0,0,.12);transition:width .22s cubic-bezier(.2,.8,.2,1),height .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s ease-out}.ds-progress:hover .ds-progress-knob,.ds-progress:focus-within .ds-progress-knob{width:16px;height:16px;margin-top:-8px;margin-left:-8px;box-shadow:0 2px 8px rgba(0,0,0,.22)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Clear Control Deck",
+    "overview": "NaviMini 的界面像一块清楚、可触达的控制台：歌曲列表是目录，播放页是运输控件，系统媒体栏是延伸。视觉服务「点歌 → 听歌 → 控歌」这条路径，不卖气氛，不堆品牌秀。\n\n密度适中、跟 iOS HIG。San Francisco 系统文字样式、系统 tint、inset List、分段控件与圆形主播放键构成默认词汇。实现上优先语义色（Color.accentColor、primary、secondary、red），让 Light / Dark Mode 与对比度设置自动跟上；hex 是 Light Mode 下的可机读近似，不是第二套硬编码调色板。\n\n系统明确拒绝：花哨流媒体感（强品牌色、大卡片墙、营销感）、信息过载的库管理工具感（控件密、设置深）、以及过度拟物 / 炫技动效（玻璃、光晕、夸张转场）。",
+    "keyCharacteristics": [
+      "单一 accent，只服务交互与当前状态",
+      "系统字体与文字样式，无独立品牌字",
+      "列表直白、播放控件 decisively 居中",
+      "阴影极少，且只出现在可拖动控件上",
+      "错误用系统红直接暴露，不做装饰性兜底"
+    ],
+    "rules": [
+      {
+        "name": "The One Tint Rule",
+        "body": "任意屏幕上，accent 只出现在可操作项与「当前状态」上，占比宜 ≤10%。装饰性大色块、全屏渐变品牌墙禁止出现在正式 UI（截图展示模式可例外，但不得回写进产品页）。",
+        "section": "colors"
+      },
+      {
+        "name": "The Semantic First Rule",
+        "body": "新颜色先问有没有系统语义色。有则用语义色；没有才加命名 token。硬编码 hex 不得替代 Color.primary / secondary / accentColor。",
+        "section": "colors"
+      },
+      {
+        "name": "The Dynamic Type Rule",
+        "body": "使用 SwiftUI 文字样式（.title2、.body、.subheadline…），禁止为了「更设计」写死 pt 覆盖动态字体。",
+        "section": "typography"
+      },
+      {
+        "name": "The No Display Face Rule",
+        "body": "UI 标签、按钮、数据一律 SF。禁止为产品页引入展示字体或全大写宽字距标题。",
+        "section": "typography"
+      },
+      {
+        "name": "The Soft Lift On Controls Rule",
+        "body": "阴影只服务可交互控件的按压 / 拖动反馈。禁止卡片墙、列表行、封面使用装饰性大模糊阴影。",
+        "section": "elevation"
+      },
+      {
+        "name": "The Flat List Rule",
+        "body": "歌曲行靠 tint 洗底与字重表达「正在播放」，不靠 elevation。",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do 用系统语义色与文字样式，保证 Dynamic Type、Dark Mode、辅助功能对比度。",
+      "Do 把唯一强填充按钮留给播放 / 暂停。",
+      "Do 用 accent 洗底或字重标出「当前曲」，并在切歌时滚动对齐。",
+      "Do 错误用 error 红直接写在列表顶部，文案可读。",
+      "Do 进度与运输控件保持大触控区（≥44pt）与明确触感反馈。",
+      "Do 尊重 Reduce Motion：必要时用交叉淡入替代大位移动画。"
+    ],
+    "donts": [
+      "Don't 做成花哨的流媒体 App：强品牌色、大卡片墙、营销感强。",
+      "Don't 做成信息过载的库管理工具：控件密、设置深、像后台。",
+      "Don't 使用过度拟物 / 炫技动效：玻璃、光晕、夸张转场。",
+      "Don't 在正式播放/列表页使用截图模式里的蓝青靛封面渐变作为默认视觉。",
+      "Don't 给列表行或封面加大面积装饰阴影。",
+      "Don't 引入第二品牌色或 display 字体来「做出差异」。",
+      "Don't 用自动回退 / 自愈动画掩盖播放或网络失败。"
+    ]
+  }
+}

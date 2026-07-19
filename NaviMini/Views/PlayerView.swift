@@ -4,22 +4,24 @@ import UIKit
 struct PlayerView: View {
   @ObservedObject var session: SessionStore
   @ObservedObject var playback: PlaybackController
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var dragProgress: Double = 0
   @State private var isDraggingProgress: Bool = false
   @State private var didTriggerDragHaptic: Bool = false
+  @State private var coverImage: UIImage? = nil
+  @State private var isLoadingCover: Bool = false
 
   var body: some View {
     VStack(spacing: 24) {
-      // 封面区域
       coverArtView
 
-      // 曲目信息
       VStack(spacing: 8) {
         Text(playback.current?.title ?? "未播放")
           .font(.title2)
           .fontWeight(.semibold)
           .multilineTextAlignment(.center)
           .lineLimit(2)
+          .accessibilityAddTraits(.isHeader)
 
         let subtitle = [playback.current?.artist, playback.current?.album]
           .compactMap { $0 }
@@ -31,16 +33,31 @@ struct PlayerView: View {
             .font(.subheadline)
             .foregroundStyle(.secondary)
             .lineLimit(1)
+        } else if playback.current == nil {
+          Text("从歌曲列表点一首开始听")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
         }
 
         if playback.current?.sourceFormatLabel != nil || playback.currentPlaybackSource == .localCache {
           HStack(spacing: 6) {
             if let formatLabel = playback.current?.sourceFormatLabel {
-              infoBadge(text: formatLabel, fill: Color.secondary.opacity(0.08), foreground: Color.secondary.opacity(0.85))
+              infoBadge(
+                text: formatLabel,
+                fill: Color.secondary.opacity(0.08),
+                foreground: Color.secondary.opacity(0.85),
+                accessibilityLabel: "格式 \(formatLabel)"
+              )
             }
 
             if playback.currentPlaybackSource == .localCache {
-              infoBadge(text: "本地", fill: Color.accentColor.opacity(0.12), foreground: Color.accentColor.opacity(0.9))
+              infoBadge(
+                text: "本地",
+                fill: Color.accentColor.opacity(0.12),
+                foreground: Color.accentColor.opacity(0.9),
+                accessibilityLabel: "正在播放本地缓存"
+              )
             }
           }
         }
@@ -50,48 +67,63 @@ struct PlayerView: View {
       TimelineView(.periodic(from: .now, by: 1.0 / 30.0)) { context in
         let visualProgress = displayedProgress(at: context.date)
         VStack(spacing: 10) {
-          ZStack(alignment: .center) {
-            MusicProgressBar(
-              duration: playback.currentDuration,
-              buffered: playback.bufferedTime,
-              progress: visualProgress,
-              isDragging: isDraggingProgress,
-              onDragChanged: { value in
-                if !isDraggingProgress {
-                  isDraggingProgress = true
-                  dragProgress = playback.currentTime
-                }
-                dragProgress = value
-                if !didTriggerDragHaptic {
-                  UIImpactFeedbackGenerator(style: .soft).impactOccurred()
-                  didTriggerDragHaptic = true
-                }
-              },
-              onDragEnded: {
-                isDraggingProgress = false
-                didTriggerDragHaptic = false
-                playback.seek(to: dragProgress)
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+          MusicProgressBar(
+            duration: playback.currentDuration,
+            buffered: playback.bufferedTime,
+            progress: visualProgress,
+            isDragging: isDraggingProgress,
+            reduceMotion: reduceMotion,
+            onDragChanged: { value in
+              if !isDraggingProgress {
+                isDraggingProgress = true
+                dragProgress = playback.currentTime
               }
-            )
-            .frame(height: 36)
-            .opacity(playback.currentDuration > 0 ? 1 : 0.5)
-            .allowsHitTesting(playback.currentDuration > 0)
+              dragProgress = value
+              if !didTriggerDragHaptic {
+                UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                didTriggerDragHaptic = true
+              }
+            },
+            onDragEnded: {
+              isDraggingProgress = false
+              didTriggerDragHaptic = false
+              playback.seek(to: dragProgress)
+              UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            }
+          )
+          .frame(height: 36)
+          .opacity(playback.currentDuration > 0 ? 1 : 0.5)
+          .allowsHitTesting(playback.currentDuration > 0)
+          .accessibilityElement(children: .ignore)
+          .accessibilityLabel("播放进度")
+          .accessibilityValue(progressAccessibilityValue(visualProgress))
+          .accessibilityAdjustableAction { direction in
+            guard playback.currentDuration > 0 else { return }
+            let step = max(playback.currentDuration * 0.05, 1)
+            switch direction {
+            case .increment:
+              playback.seek(to: min(visualProgress + step, playback.currentDuration))
+            case .decrement:
+              playback.seek(to: max(visualProgress - step, 0))
+            @unknown default:
+              break
+            }
           }
 
           HStack {
             Text(formatTime(visualProgress))
               .foregroundStyle(.primary)
+              .accessibilityHidden(true)
             Spacer()
             Text("-\(formatTime(max(playback.currentDuration - visualProgress, 0)))")
               .foregroundStyle(.secondary)
+              .accessibilityHidden(true)
           }
           .font(.caption.monospacedDigit().weight(.medium))
         }
         .padding(.horizontal)
       }
 
-      // 播放模式
       Picker("模式", selection: Binding(
         get: { playback.mode },
         set: { newMode in
@@ -109,8 +141,8 @@ struct PlayerView: View {
       }
       .pickerStyle(.segmented)
       .padding(.horizontal)
+      .accessibilityLabel("播放模式")
 
-      // 播放控制
       HStack(spacing: 40) {
         Button {
           do {
@@ -120,17 +152,22 @@ struct PlayerView: View {
         } label: {
           Image(systemName: "backward.fill")
             .font(.title2)
+            .frame(width: 44, height: 44)
+            .contentShape(Rectangle())
         }
+        .accessibilityLabel("上一首")
 
         Button {
           playback.togglePlayPause()
         } label: {
           Image(systemName: playback.isPlaying ? "pause.fill" : "play.fill")
             .font(.largeTitle)
-            .padding(16)
+            .frame(width: 76, height: 76)
+            .contentShape(Circle())
         }
         .buttonStyle(.borderedProminent)
         .clipShape(Circle())
+        .accessibilityLabel(playback.isPlaying ? "暂停" : "播放")
 
         Button {
           do {
@@ -140,7 +177,10 @@ struct PlayerView: View {
         } label: {
           Image(systemName: "forward.fill")
             .font(.title2)
+            .frame(width: 44, height: 44)
+            .contentShape(Rectangle())
         }
+        .accessibilityLabel("下一首")
       }
       .padding(.top, 12)
 
@@ -155,45 +195,63 @@ struct PlayerView: View {
     }
   }
 
-  @State private var coverImage: UIImage? = nil
-  @State private var isLoadingCover: Bool = false
-
   @ViewBuilder
   private var coverArtView: some View {
-    if let song = playback.current, let artId = song.coverArt,
-       let client = try? session.makeClient() {
-      let url = client.coverArtURL(coverArtId: artId)
+    let corner: CGFloat = 16
 
-      ZStack {
-        RoundedRectangle(cornerRadius: 16)
-          .fill(Color.gray.opacity(0.2))
+    ZStack {
+      RoundedRectangle(cornerRadius: corner)
+        .fill(Color.secondary.opacity(0.12))
 
-        if let coverImage {
-          Image(uiImage: coverImage)
-            .resizable()
-            .aspectRatio(1, contentMode: .fill)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-        } else if isLoadingCover {
-          ProgressView()
-        } else {
-          Image(systemName: "music.note")
-            .font(.largeTitle)
-            .foregroundStyle(.secondary)
-        }
+      if let coverImage {
+        Image(uiImage: coverImage)
+          .resizable()
+          .aspectRatio(1, contentMode: .fill)
+          .frame(width: 260, height: 260)
+          .clipped()
+          .clipShape(RoundedRectangle(cornerRadius: corner))
+          .accessibilityHidden(true)
+      } else if isLoadingCover {
+        ProgressView()
+          .accessibilityLabel("正在加载封面")
+      } else {
+        Image(systemName: "music.note")
+          .font(.largeTitle)
+          .foregroundStyle(.secondary)
+          .accessibilityHidden(true)
       }
-      .frame(width: 260, height: 260)
-      .padding(.top, 24)
-      .task(id: artId) {
-        isLoadingCover = true
-        coverImage = await CoverArtLoader.image(from: url)
-        isLoadingCover = false
-      }
-    } else {
-      RoundedRectangle(cornerRadius: 16)
-        .fill(Color.gray.opacity(0.1))
-        .frame(width: 260, height: 260)
-        .padding(.top, 24)
     }
+    .frame(width: 260, height: 260)
+    .padding(.top, 24)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(coverAccessibilityLabel)
+    .task(id: playback.current?.coverArt) {
+      guard let song = playback.current, let artId = song.coverArt,
+            let client = try? session.makeClient() else {
+        coverImage = nil
+        isLoadingCover = false
+        return
+      }
+
+      isLoadingCover = true
+      coverImage = nil
+      let url = client.coverArtURL(coverArtId: artId)
+      coverImage = await CoverArtLoader.image(from: url)
+      isLoadingCover = false
+    }
+  }
+
+  private var coverAccessibilityLabel: String {
+    if playback.current == nil {
+      return "未播放，无封面"
+    }
+    if coverImage != nil {
+      return "专辑封面"
+    }
+    if isLoadingCover {
+      return "正在加载封面"
+    }
+    return "无封面"
   }
 
   private func formatTime(_ seconds: Double) -> String {
@@ -203,6 +261,10 @@ struct PlayerView: View {
     let remain = value % 60
     return String(format: "%d:%02d", minutes, remain)
   }
+
+  private func progressAccessibilityValue(_ seconds: Double) -> String {
+    guard playback.currentDuration > 0 else { return "时长未知" }
+    return "\(formatTime(seconds))，共 \(formatTime(playback.currentDuration))"  }
 
   private func displayedProgress(at now: Date) -> Double {
     if isDraggingProgress {
@@ -218,7 +280,12 @@ struct PlayerView: View {
     )
   }
 
-  private func infoBadge(text: String, fill: Color, foreground: Color) -> some View {
+  private func infoBadge(
+    text: String,
+    fill: Color,
+    foreground: Color,
+    accessibilityLabel: String
+  ) -> some View {
     Text(text)
       .font(.caption2.weight(.medium))
       .foregroundStyle(foreground)
@@ -228,6 +295,7 @@ struct PlayerView: View {
         Capsule()
           .fill(fill)
       )
+      .accessibilityLabel(accessibilityLabel)
   }
 }
 
@@ -236,6 +304,7 @@ private struct MusicProgressBar: View {
   let buffered: Double
   let progress: Double
   let isDragging: Bool
+  let reduceMotion: Bool
   let onDragChanged: (Double) -> Void
   let onDragEnded: () -> Void
 
@@ -260,6 +329,7 @@ private struct MusicProgressBar: View {
       let width = max(proxy.size.width, 1)
       let knobX = max(min(width * ratio, width), 0)
       let bufferedX = max(min(width * bufferedRatio, width), 0)
+      let knobSize: CGFloat = isDragging ? 16 : 12
 
       ZStack(alignment: .leading) {
         Capsule()
@@ -294,14 +364,21 @@ private struct MusicProgressBar: View {
 
         Circle()
           .fill(Color.white)
-          .frame(width: isDragging ? 16 : 12, height: isDragging ? 16 : 12)
+          .frame(width: knobSize, height: knobSize)
           .overlay(
             Circle()
               .stroke(Color.accentColor.opacity(0.8), lineWidth: 2)
           )
-          .shadow(color: Color.black.opacity(isDragging ? 0.22 : 0.12), radius: isDragging ? 8 : 4, y: 2)
-          .offset(x: knobX - (isDragging ? 8 : 6))
-          .animation(.spring(response: 0.22, dampingFraction: 0.82), value: isDragging)
+          .shadow(
+            color: Color.black.opacity(isDragging ? 0.22 : 0.12),
+            radius: isDragging ? 8 : 4,
+            y: 2
+          )
+          .offset(x: knobX - knobSize / 2)
+          .animation(
+            reduceMotion ? nil : .spring(response: 0.22, dampingFraction: 0.82),
+            value: isDragging
+          )
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
       .contentShape(Rectangle())
